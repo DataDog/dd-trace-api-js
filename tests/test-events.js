@@ -55,7 +55,7 @@ const test = (name, fn, options = {}) => {
 let tracer
 
 test('tracerinit', () => {
-  tracer = require('./index.js')
+  tracer = require('../index.js')
 })
 
 let span

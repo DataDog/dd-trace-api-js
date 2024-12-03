@@ -5,7 +5,7 @@ const dc = require('dc-polyfill')
 const testBase = require('node:test')
 const assert = require('node:assert')
 
-const tracer = require('./index.js')
+const tracer = require('../index.js')
 
 const test = (name, fn) => {
   testBase('with dd-trace: ' + name, fn)
