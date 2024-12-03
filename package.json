@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "node --test"
+    "test": "node tests/run.js"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +13,7 @@
     "dc-polyfill": "^0.1.6"
   },
   "devDependencies": {
-    "dd-trace": "git+ssh://github.com/DataDog/dd-trace-js.git#bengl/instrument-dd-trace-api"
+    "dd-trace": "git+ssh://github.com/DataDog/dd-trace-js.git#bengl/instrument-dd-trace-api",
+    "test": "^3.3.0"
   }
 }
