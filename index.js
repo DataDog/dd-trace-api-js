@@ -27,9 +27,6 @@ function shimmable (name, defaultFun, mapReturnValue) {
 }
 
 function noop (name) {
-  if (!name) {
-    throw new Error('noop must be called with a name')
-  }
   return shimmable(name, () => {})
 }
 
@@ -57,7 +54,9 @@ const tracer = {
   use: noopThis('use'),
   scope: () => ({
     active: shimmable('scope:active', getSpan), // This could return null but _so_ much code depends on having a span
-    activate: shimmable('scope:activate', (_span, fn) => fn()),
+    activate: shimmable('scope:activate', (_span, fn) => {
+      return fn()
+    }),
     bind: shimmable('scope:bind', fn => typeof fn === 'function' ? fn() : fn),
     isNoop: shimmable('scope:isNoop', false)
   }),
@@ -65,13 +64,18 @@ const tracer = {
   // This was taken from the current dd-trace. It only uses public APIs, so it 
   // can live entirely within the API package.
   trace (name, options, fn) {
+    if (typeof options === 'function') {
+      fn = options
+      options = {}
+    }
     options = Object.assign({
       childOf: this.scope().active()
     }, options)
 
     const span = this.startSpan(name, options)
 
-    addTags(span, options)
+    // TODO: Should this be reimplemented on this side, or be a dd-trace concern?
+    //addTags(span, options)
 
     try {
       if (fn.length > 1) {
@@ -166,4 +170,12 @@ tracer.tracer = tracer.default = tracer
 
 const tracerInitChannel = dc.channel('datadog-api:v1:tracerinit')
 tracerInitChannel.publish({ proxy: () => tracer })
+
 module.exports = tracer
+
+function addError (span, err) {
+  if (err) {
+    span.setTag('error', err)
+  }
+}
+
