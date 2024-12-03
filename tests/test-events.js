@@ -23,7 +23,11 @@ class TestChannel {
   }
 }
 
-dc.channel = (name) => new TestChannel(name)
+dc.channel = (name) => {
+  if (channels[name]) return channels[name]
+  channels[name] = new TestChannel(name)
+  return channels[name]
+}
 
 function clearChannels () {
   channels = {}
@@ -40,11 +44,11 @@ const test = (name, fn, options = {}) => {
   name = 'datadog-api:v1:' + name
   if ('ret' in options) {
     retVals[name] = options.ret
-  }
+}
   testBase(`event: "${name}"`, () => {
     try {
       fn()
-      channelWasCalled(name)
+      channelWasCalled(name, options)
     } catch (e) {
       delete retVals[name]
       throw e
@@ -94,3 +98,68 @@ test('span:finish', () => {
 test('setUrl', () => {
   tracer.setUrl('https://example.com')
 })
+test('use', () => {
+  tracer.use('foo')
+})
+
+// TODO test scope
+
+// TODO test trace and wrap
+
+test('getRumData', () => {
+  tracer.getRumData()
+}, { ret: {} })
+
+test('setUser', () => {
+  tracer.setUser('foo')
+})
+
+test('appsec:trackUserLoginSuccessEvent', () => {
+  tracer.appsec.trackUserLoginSuccessEvent('foo')
+})
+
+test('appsec:trackUserLoginFailureEvent', () => {
+  tracer.appsec.trackUserLoginFailureEvent('foo')
+})
+
+test('appsec:tracerCustomEvent', () => {
+  tracer.appsec.tracerCustomEvent('foo', 'bar')
+})
+
+test('appsec:isUserBlocked', () => {
+  tracer.appsec.isUserBlocked('foo')
+}, { ret: true })
+
+test('appsec:blockRequest', () => {
+  tracer.appsec.blockRequest('foo')
+}, { ret: {} })
+
+test('appsec:setUser', () => {
+  tracer.appsec.setUser('foo')
+})
+
+test('dogstatsd:increment', () => {
+  tracer.dogstatsd.increment('foo')
+})
+
+test('dogstatsd:decrement', () => {
+  tracer.dogstatsd.decrement('foo')
+})
+
+test('dogstatsd:distribution', () => {
+  tracer.dogstatsd.distribution('foo', 'bar')
+})
+
+test('dogstatsd:gauge', () => {
+  tracer.dogstatsd.gauge('foo', 'bar')
+})
+
+test('dogstatsd:histogram', () => {
+  tracer.dogstatsd.histogram('foo', 'bar')
+})
+
+test('dogstatsd:flush', () => {
+  tracer.dogstatsd.flush()
+})
+
+// TODO llmobs

@@ -147,7 +147,7 @@ const tracer = {
     }
   },
 
-  getRumData: shimmable('getRumData', ''),
+  getRumData: shimmable('getRumData'),
   setUser: noopThis('setUser'),
   appsec: {
     trackUserLoginSuccessEvent: noop('appsec:trackUserLoginSuccessEvent'),
@@ -165,6 +165,7 @@ const tracer = {
     histogram: noop('dogstatsd:histogram'),
     flush: noop('dogstatsd:flush')
   }
+  // TODO llmobs
 }
 tracer.tracer = tracer.default = tracer
 
