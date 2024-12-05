@@ -36,14 +36,24 @@ function noopThis (name) {
   })
 }
 
+const dummySpan = {
+  setTag: noop('span:setTag'),
+  addTags: noop('span:addTags'),
+  finish: noop('span:finish'),
+  context: shimmable('span:context', () => ({ dummy: 'context' }), true),
+  addLink: noop('span:addLink')
+}
 function getSpan () {
-  return {
-    setTag: noop('span:setTag'),
-    addTags: noop('span:addTags'),
-    finish: noop('span:finish'),
-    context: shimmable('span:context', () => ({ dummy: 'context' }), true),
-    addLink: noop('span:addLink')
-  }
+  return Object.create(dummySpan)
+}
+
+const scopeObj = {
+  active: shimmable('scope:active', getSpan), // This could return null but _so_ much code depends on having a span
+  activate: shimmable('scope:activate', (_span, fn) => {
+    return fn()
+  }),
+  bind: shimmable('scope:bind', fn => typeof fn === 'function' ? fn() : fn),
+  isNoop: shimmable('scope:isNoop', false)
 }
 
 const tracer = {
@@ -52,14 +62,7 @@ const tracer = {
   extract: shimmable('extract', null),
   setUrl: noopThis('setUrl'),
   use: noopThis('use'),
-  scope: () => ({
-    active: shimmable('scope:active', getSpan), // This could return null but _so_ much code depends on having a span
-    activate: shimmable('scope:activate', (_span, fn) => {
-      return fn()
-    }),
-    bind: shimmable('scope:bind', fn => typeof fn === 'function' ? fn() : fn),
-    isNoop: shimmable('scope:isNoop', false)
-  }),
+  scope: () => scopeObj,
 
   // This was taken from the current dd-trace. It only uses public APIs, so it 
   // can live entirely within the API package.
