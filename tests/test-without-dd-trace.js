@@ -1,7 +1,6 @@
 'use strict'
 
 const testBase = require('node:test')
-const dc = require('dc-polyfill')
 const assert = require('node:assert')
 
 const tracer = require('../index.js')

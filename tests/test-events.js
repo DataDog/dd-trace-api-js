@@ -2,30 +2,30 @@ const dc = require('dc-polyfill')
 const assert = require('node:assert')
 const testBase = require('node:test')
 
-let channels = {}
-let retVals = {}
-let errors = {}
+const channels = {}
+const retVals = {}
+const errors = {}
 let callCtx
 
 class TestChannel {
-  constructor(name) {
+  constructor (name) {
     channels[name] = this
     this.name = name
     this.messages = []
   }
 
-  publish(payload) {
+  publish (payload) {
     this.messages.push(payload)
     if (errors[this.name]) {
       payload.ret.error = errors[this.name]
       delete errors[this.name]
-    } else if (retVals[this.name]) {    
+    } else if (retVals[this.name]) {
       payload.ret.value = retVals[this.name]
       delete retVals[this.name]
     }
   }
 
-  get hasSubscribers() {
+  get hasSubscribers () {
     return true
   }
 }
@@ -57,7 +57,7 @@ function channelWasCalled (name, options = {}) {
 
 // We use this function to call a method on the tracer API, so that it stashes
 // the arguments and target (self), so we can test them later in `channelWasCalled`.
-function makeCall(obj, fnName, ...args) {
+function makeCall (obj, fnName, ...args) {
   callCtx.called = true
   callCtx.self = obj
   callCtx.args = args
@@ -85,7 +85,7 @@ function test (name, fn, options = {}) {
       errors[name] = err
       callCtx = {} // Reset the call context every time we call the tested function
       assert.throws(() => fn(), err)
-      channelWasCalled(name, {...options, times: 2})
+      channelWasCalled(name, { ...options, times: 2 })
     })
   }
 }
@@ -109,9 +109,8 @@ test('span:addTags', () => {
 test('span:addLink', () => {
   makeCall(span, 'addLink', 'foo', 'bar')
 })
-let ctx
 test('span:context', () => {
-  ctx = makeCall(span, 'context')
+  makeCall(span, 'context')
 })
 // TODO missing context methods
 

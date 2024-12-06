@@ -3,7 +3,7 @@
 const dc = require('dc-polyfill')
 const Module = require('module')
 
-let channelNames = []
+const channelNames = []
 dc.channel = (name) => {
   if (name.startsWith('datadog-api')) {
     channelNames.push(name)

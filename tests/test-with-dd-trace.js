@@ -1,6 +1,5 @@
 'use strict'
 require('dd-trace/init')
-const dc = require('dc-polyfill')
 
 const testBase = require('node:test')
 const assert = require('node:assert')

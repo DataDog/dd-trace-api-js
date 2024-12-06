@@ -64,7 +64,7 @@ const tracer = {
   use: noopThis('use'),
   scope: () => scopeObj,
 
-  // This was taken from the current dd-trace. It only uses public APIs, so it 
+  // This was taken from the current dd-trace. It only uses public APIs, so it
   // can live entirely within the API package.
   trace (name, options, fn) {
     if (typeof options === 'function') {
@@ -78,7 +78,7 @@ const tracer = {
     const span = this.startSpan(name, options)
 
     // TODO: Should this be reimplemented on this side, or be a dd-trace concern?
-    //addTags(span, options)
+    // addTags(span, options)
 
     try {
       if (fn.length > 1) {
@@ -114,7 +114,7 @@ const tracer = {
     }
   },
 
-  // This was taken from the current dd-trace. It only uses public APIs, so it 
+  // This was taken from the current dd-trace. It only uses public APIs, so it
   // can live entirely within the API package.
   wrap (name, options, fn) {
     const tracer = this
@@ -125,10 +125,6 @@ const tracer = {
       let optionsObj = options
       if (typeof optionsObj === 'function' && typeof fn === 'function') {
         optionsObj = optionsObj.apply(this, arguments)
-      }
-
-      if (optionsObj && optionsObj.orphanable === false && !tracer.scope().active() && DD_MAJOR < 4) {
-        return fn.apply(this, arguments)
       }
 
       const lastArgId = arguments.length - 1
@@ -182,4 +178,3 @@ function addError (span, err) {
     span.setTag('error', err)
   }
 }
-

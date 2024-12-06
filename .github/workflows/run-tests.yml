@@ -26,3 +26,17 @@ jobs:
       run: npm install
     - name: Run tests
       run: npm test
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: 'npm'
+    # Install just neostandard to avoid installing all dependencies
+    - name: Install just neostandard
+      run: npm install neostandard@$(node -p "require('./package').devDependencies.neostandard")
+    - name: Run lint
+      run: npm run lint

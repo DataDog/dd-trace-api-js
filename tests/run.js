@@ -1,4 +1,4 @@
-const [ MAJOR, MINOR ] = process.versions.node.split('.').map(Number)
+const [MAJOR, MINOR] = process.versions.node.split('.').map(Number)
 
 let testCommand = 'node --test'
 
