@@ -4,14 +4,14 @@ const dc = require('dc-polyfill')
 const version = require('./package.json').version
 const major = version.split('.')[0]
 
-function shimmable (name, defaultFun, mapReturnValue) {
+function shimmable (name, defaultFun, mapReturnValue, revProxy = []) {
   const channel = dc.channel(`datadog-api:v${major}:${name}`)
   function fn () {
     if (!channel.hasSubscribers) {
       return defaultFun.apply(this, arguments)
     }
     const ret = {}
-    const payload = { self: this, args: arguments, ret }
+    const payload = { self: this, args: arguments, ret, revProxy }
     if (mapReturnValue) {
       payload.proxy = defaultFun
     }
@@ -63,89 +63,13 @@ const tracer = {
   setUrl: noopThis('setUrl'),
   use: noopThis('use'),
   scope: () => scopeObj,
-
-  // This was taken from the current dd-trace. It only uses public APIs, so it
-  // can live entirely within the API package.
-  trace (name, options, fn) {
-    if (typeof options === 'function') {
-      fn = options
-      options = {}
-    }
-    options = Object.assign({
-      childOf: this.scope().active()
-    }, options)
-
-    const span = this.startSpan(name, options)
-
-    // TODO: Should this be reimplemented on this side, or be a dd-trace concern?
-    // addTags(span, options)
-
-    try {
-      if (fn.length > 1) {
-        return this.scope().activate(span, () => fn(span, err => {
-          addError(span, err)
-          span.finish()
-        }))
-      }
-
-      const result = this.scope().activate(span, () => fn(span))
-
-      if (result && typeof result.then === 'function') {
-        return result.then(
-          value => {
-            span.finish()
-            return value
-          },
-          err => {
-            addError(span, err)
-            span.finish()
-            throw err
-          }
-        )
-      } else {
-        span.finish()
-      }
-
-      return result
-    } catch (e) {
-      addError(span, e)
-      span.finish()
-      throw e
-    }
-  },
-
-  // This was taken from the current dd-trace. It only uses public APIs, so it
-  // can live entirely within the API package.
-  wrap (name, options, fn) {
-    const tracer = this
-
-    return function () {
-      if (tracer.scope().isNoop()) return fn.apply(this, arguments)
-
-      let optionsObj = options
-      if (typeof optionsObj === 'function' && typeof fn === 'function') {
-        optionsObj = optionsObj.apply(this, arguments)
-      }
-
-      const lastArgId = arguments.length - 1
-      const cb = arguments[lastArgId]
-
-      if (typeof cb === 'function') {
-        const scopeBoundCb = tracer.scope().bind(cb)
-        return tracer.trace(name, optionsObj, (span, done) => {
-          arguments[lastArgId] = function (err) {
-            done(err)
-            return scopeBoundCb.apply(this, arguments)
-          }
-
-          return fn.apply(this, arguments)
-        })
-      } else {
-        return tracer.trace(name, optionsObj, () => fn.apply(this, arguments))
-      }
-    }
-  },
-
+  trace: shimmable('trace', function (name, options, fn) {
+    fn = typeof options === 'function' ? options : fn
+    return fn.apply(this, arguments)
+  }, false, [getSpan]),
+  wrap: shimmable('wrap', (name, options, fn) => {
+    return typeof options === 'function' ? options : fn
+  }),
   getRumData: shimmable('getRumData'),
   setUser: noopThis('setUser'),
   appsec: {
@@ -172,9 +96,3 @@ const tracerInitChannel = dc.channel('datadog-api:v1:tracerinit')
 tracerInitChannel.publish({ proxy: () => tracer })
 
 module.exports = tracer
-
-function addError (span, err) {
-  if (err) {
-    span.setTag('error', err)
-  }
-}
