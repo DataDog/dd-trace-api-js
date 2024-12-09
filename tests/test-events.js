@@ -112,7 +112,7 @@ test('span:addLink', () => {
 test('span:context', () => {
   makeCall(span, 'context')
 })
-// TODO missing context methods
+// TODO missing context methods?
 
 test('inject', () => {
   const carrier = {}
@@ -135,9 +135,31 @@ test('use', () => {
   makeCall(tracer, 'use', 'foo')
 })
 
-// TODO test scope
+let scope
+test('scope', () => {
+  scope = makeCall(tracer, 'scope')
+})
+test('scope:activate', () => {
+  let called = false
+  makeCall(scope, 'activate', span, () => {
+    called = true
+  })
+  assert.ok(called)
+})
+test('scope:active', () => {
+  makeCall(scope, 'active')
+})
+test('scope:bind', () => {
+  makeCall(scope, 'bind', () => {})
+})
 
-// TODO test trace and wrap
+test('trace', () => {
+  makeCall(tracer, 'trace', 'foo', {}, () => {})
+})
+
+test('wrap', () => {
+  makeCall(tracer, 'wrap', 'foo', {}, () => {})
+})
 
 test('getRumData', () => {
   makeCall(tracer, 'getRumData')
