@@ -1,7 +1,11 @@
 'use strict'
 
-const dc = require('dc-polyfill')
 const Module = require('module')
+
+const requireCache = Module._cache
+Module._cache = {}
+
+const dc = require('dc-polyfill')
 
 const channelNames = []
 dc.channel = (name) => {
@@ -14,8 +18,6 @@ dc.channel = (name) => {
   }
 }
 
-const requireCache = Module._cache
-Module._cache = {}
 require('../../index')
 Module._cache = requireCache
 

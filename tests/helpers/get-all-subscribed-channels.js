@@ -1,5 +1,9 @@
-const dc = require('dc-polyfill')
 const Module = require('module')
+
+const requireCache = Module._cache
+Module._cache = {}
+
+const dc = require('dc-polyfill')
 
 const channelNames = []
 dc.channel = (name) => {
@@ -12,8 +16,7 @@ dc.channel = (name) => {
   }
 }
 
-const requireCache = Module._cache
-Module._cache = {}
+
 const Plugin = require('dd-trace/packages/datadog-plugin-dd-trace-api/src')
 const plugin = new Plugin()
 plugin.configure({ enabled: true })

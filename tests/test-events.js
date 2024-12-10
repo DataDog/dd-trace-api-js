@@ -1,10 +1,12 @@
 const dc = require('dc-polyfill')
 const assert = require('node:assert')
 const testBase = require('node:test')
+const publishedEvents = require('./helpers/get-all-published-channels.js')
 
 const channels = {}
 const retVals = {}
 const errors = {}
+const testedEvents = []
 let callCtx
 
 class TestChannel {
@@ -67,6 +69,7 @@ function makeCall (obj, fnName, ...args) {
 
 function test (name, fn, options = {}) {
   name = 'datadog-api:v1:' + name
+  testedEvents.push(name)
   testBase(`event: "${name}"`, () => {
     if ('ret' in options) {
       // This sets the intended return value for the next call to the channel.
@@ -218,3 +221,7 @@ test('dogstatsd:flush', () => {
 })
 
 // TODO llmobs
+
+testBase('all events are tested', () => {
+  assert.deepStrictEqual(publishedEvents, testedEvents.sort())
+})
