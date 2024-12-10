@@ -22,7 +22,6 @@ function shimmable (name, defaultFun, mapReturnValue, revProxy = []) {
     }
     return ret.value
   }
-  // TODO set fn.name
   return fn
 }
 
@@ -36,6 +35,14 @@ function noopThis (name) {
   })
 }
 
+function nameFuncs (obj) {
+  for (let key in obj) {
+    const fn = obj[key]
+    if (typeof fn !== 'function') continue
+    Reflect.defineProperty(fn, 'name', { value: key })
+  }
+}
+
 const dummySpan = {
   setTag: noop('span:setTag'),
   addTags: noop('span:addTags'),
@@ -43,6 +50,7 @@ const dummySpan = {
   context: shimmable('span:context', () => ({ dummy: 'context' }), true),
   addLink: noop('span:addLink')
 }
+nameFuncs(dummySpan)
 function getSpan () {
   return Object.create(dummySpan)
 }
@@ -54,6 +62,7 @@ const dummyScope = {
   }),
   bind: shimmable('scope:bind', fn => typeof fn === 'function' ? fn() : fn)
 }
+nameFuncs(dummyScope)
 function getScope () {
   return Object.create(dummyScope)
 }
@@ -92,6 +101,10 @@ const tracer = {
   }
   // TODO llmobs
 }
+nameFuncs(tracer)
+nameFuncs(tracer.appsec)
+nameFuncs(tracer.dogstatsd)
+// nameFuncs(tracer.llmobs)
 tracer.tracer = tracer.default = tracer
 
 const tracerInitChannel = dc.channel('datadog-api:v1:tracerinit')
