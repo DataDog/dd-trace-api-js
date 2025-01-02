@@ -21,4 +21,4 @@ dc.channel = (name) => {
 require('../../index')
 Module._cache = requireCache
 
-module.exports = channelNames.sort()
+module.exports = Array.from(new Set(channelNames)).sort()

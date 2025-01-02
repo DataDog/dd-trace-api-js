@@ -131,9 +131,6 @@ test('span:finish', () => {
   makeCall(span, 'finish')
 })
 
-test('setUrl', () => {
-  makeCall(tracer, 'setUrl', 'https://example.com')
-})
 test('use', () => {
   makeCall(tracer, 'use', 'foo')
 })
@@ -167,10 +164,6 @@ test('wrap', () => {
 test('getRumData', () => {
   makeCall(tracer, 'getRumData')
 }, { ret: {} })
-
-test('setUser', () => {
-  makeCall(tracer, 'setUser', 'foo')
-})
 
 test('appsec:trackUserLoginSuccessEvent', () => {
   makeCall(tracer.appsec, 'trackUserLoginSuccessEvent', 'foo')
@@ -218,6 +211,10 @@ test('dogstatsd:histogram', () => {
 
 test('dogstatsd:flush', () => {
   makeCall(tracer.dogstatsd, 'flush')
+})
+
+test('profilerStarted', () => {
+  makeCall(tracer, 'profilerStarted')
 })
 
 // TODO llmobs

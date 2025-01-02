@@ -38,7 +38,10 @@ function noopThis (name) {
 function nameFuncs (obj) {
   for (let key in obj) {
     const fn = obj[key]
-    if (typeof fn !== 'function') continue
+    if (typeof fn === 'object') {
+      nameFuncs(fn)
+      continue
+    }
     Reflect.defineProperty(fn, 'name', { value: key })
   }
 }
@@ -68,10 +71,10 @@ function getScope () {
 }
 
 const tracer = {
+  // TODO configure, which just does setUrl
   startSpan: shimmable('startSpan', getSpan, true),
   inject: noop('inject'),
   extract: shimmable('extract', null),
-  setUrl: noopThis('setUrl'),
   use: noopThis('use'),
   scope: shimmable('scope', getScope, true),
   trace: shimmable('trace', function (name, options, fn) {
@@ -82,7 +85,6 @@ const tracer = {
     return typeof options === 'function' ? options : fn
   }),
   getRumData: shimmable('getRumData'),
-  setUser: noopThis('setUser'),
   appsec: {
     trackUserLoginSuccessEvent: noop('appsec:trackUserLoginSuccessEvent'),
     trackUserLoginFailureEvent: noop('appsec:trackUserLoginFailureEvent'),
@@ -98,13 +100,12 @@ const tracer = {
     gauge: noop('dogstatsd:gauge'),
     histogram: noop('dogstatsd:histogram'),
     flush: noop('dogstatsd:flush')
-  }
+  },
+  profilerStarted: shimmable('profilerStarted', () => Promise.resolve(false)),
   // TODO llmobs
 }
 nameFuncs(tracer)
-nameFuncs(tracer.appsec)
-nameFuncs(tracer.dogstatsd)
-// nameFuncs(tracer.llmobs)
+
 tracer.tracer = tracer.default = tracer
 
 const tracerInitChannel = dc.channel('datadog-api:v1:tracerinit')

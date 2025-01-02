@@ -3,7 +3,7 @@ const Module = require('module')
 const requireCache = Module._cache
 Module._cache = {}
 
-const dc = require('dc-polyfill')
+const dc = require('diagnostics_channel')
 
 const channelNames = []
 dc.channel = (name) => {
@@ -22,4 +22,4 @@ const plugin = new Plugin()
 plugin.configure({ enabled: true })
 Module._cache = requireCache
 
-module.exports = channelNames.sort()
+module.exports = Array.from(new Set(channelNames)).sort()
