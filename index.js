@@ -46,11 +46,21 @@ function nameFuncs (obj) {
   }
 }
 
+const dummySpanContext = {
+  toTraceId: noop('context:toTraceId'),
+  toSpanId: noop('context:toSpanId'),
+  toTraceparent: noop('context:toTraceparent'),
+}
+nameFuncs(dummySpanContext)
+function getSpanContext () {
+  return Object.create(dummySpanContext)
+}
+
 const dummySpan = {
   setTag: noop('span:setTag'),
   addTags: noop('span:addTags'),
   finish: noop('span:finish'),
-  context: shimmable('span:context', () => ({ dummy: 'context' }), true),
+  context: shimmable('span:context', getSpanContext, true),
   addLink: noop('span:addLink')
 }
 nameFuncs(dummySpan)

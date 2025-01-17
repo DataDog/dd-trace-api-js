@@ -100,6 +100,7 @@ test('tracerinit', () => {
 }, { skipThrows: true })
 
 let span
+let context
 test('startSpan', () => {
   span = makeCall(tracer, 'startSpan', 'foo')
 })
@@ -113,9 +114,17 @@ test('span:addLink', () => {
   makeCall(span, 'addLink', 'foo', 'bar')
 })
 test('span:context', () => {
-  makeCall(span, 'context')
+  context = makeCall(span, 'context')
 })
-// TODO missing context methods?
+test('context:toTraceId', () => {
+  makeCall(context, 'toTraceId')
+})
+test('context:toSpanId', () => {
+  makeCall(context, 'toSpanId')
+})
+test('context:toTraceparent', () => {
+  makeCall(context, 'toTraceparent')
+})
 
 test('inject', () => {
   const carrier = {}
