@@ -182,8 +182,8 @@ test('appsec:trackUserLoginFailureEvent', () => {
   makeCall(tracer.appsec, 'trackUserLoginFailureEvent', 'foo')
 })
 
-test('appsec:tracerCustomEvent', () => {
-  makeCall(tracer.appsec, 'tracerCustomEvent', 'foo', 'bar')
+test('appsec:trackCustomEvent', () => {
+  makeCall(tracer.appsec, 'trackCustomEvent', 'foo', 'bar')
 })
 
 test('appsec:isUserBlocked', () => {

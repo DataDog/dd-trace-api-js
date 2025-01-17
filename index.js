@@ -98,7 +98,7 @@ const tracer = {
   appsec: {
     trackUserLoginSuccessEvent: noop('appsec:trackUserLoginSuccessEvent'),
     trackUserLoginFailureEvent: noop('appsec:trackUserLoginFailureEvent'),
-    tracerCustomEvent: noop('appsec:tracerCustomEvent'),
+    trackCustomEvent: noop('appsec:trackCustomEvent'),
     isUserBlocked: shimmable('appsec:isUserBlocked', false),
     blockRequest: shimmable('appsec:blockRequest', false),
     setUser: noop('appsec:setUser')
