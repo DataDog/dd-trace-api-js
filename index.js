@@ -36,7 +36,7 @@ function noopThis (name) {
 }
 
 function nameFuncs (obj) {
-  for (let key in obj) {
+  for (const key in obj) {
     const fn = obj[key]
     if (typeof fn === 'object') {
       nameFuncs(fn)

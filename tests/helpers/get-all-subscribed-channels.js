@@ -16,7 +16,6 @@ dc.channel = (name) => {
   }
 }
 
-
 const Plugin = require('dd-trace/packages/datadog-plugin-dd-trace-api/src')
 const plugin = new Plugin()
 plugin.configure({ enabled: true })

@@ -57,7 +57,7 @@ test('inject with wrap', async () => {
 
 test('get active span and interact with it', () => {
   const span = tracer.startSpan('foo')
-  
+
   tracer.scope().activate(span, () => {
     const activeSpan = tracer.scope().active()
     assert.ok(activeSpan)
