@@ -47,9 +47,9 @@ function nameFuncs (obj) {
 }
 
 const dummySpanContext = {
-  toTraceId: noop('context:toTraceId'),
-  toSpanId: noop('context:toSpanId'),
-  toTraceparent: noop('context:toTraceparent'),
+  toTraceId: shimmable('context:toTraceId', () => '0000000000000000000'),
+  toSpanId: shimmable('context:toSpanId', () => '0000000000000000000'),
+  toTraceparent: shimmable('context:toTraceparent', () => '00-00000000000000000000000000000000-0000000000000000-00'),
 }
 nameFuncs(dummySpanContext)
 function getSpanContext () {
@@ -69,11 +69,11 @@ function getSpan () {
 }
 
 const dummyScope = {
-  active: shimmable('scope:active', getSpan), // This could return null but _so_ much code depends on having a span
+  active: shimmable('scope:active', getSpan, true), // This could return null but _so_ much code depends on having a span
   activate: shimmable('scope:activate', (_span, fn) => {
     return fn()
   }),
-  bind: shimmable('scope:bind', fn => typeof fn === 'function' ? fn() : fn)
+  bind: shimmable('scope:bind', fn => fn),
 }
 nameFuncs(dummyScope)
 function getScope () {
@@ -94,7 +94,7 @@ const tracer = {
   wrap: shimmable('wrap', (name, options, fn) => {
     return typeof options === 'function' ? options : fn
   }),
-  getRumData: shimmable('getRumData'),
+  getRumData: shimmable('getRumData', () => ''),
   appsec: {
     trackUserLoginSuccessEvent: noop('appsec:trackUserLoginSuccessEvent'),
     trackUserLoginFailureEvent: noop('appsec:trackUserLoginFailureEvent'),
@@ -111,7 +111,7 @@ const tracer = {
     histogram: noop('dogstatsd:histogram'),
     flush: noop('dogstatsd:flush')
   },
-  profilerStarted: shimmable('profilerStarted', () => Promise.resolve(false)),
+  profilerStarted: shimmable('profilerStarted', () => Promise.resolve(false), true),
   // TODO llmobs
 }
 nameFuncs(tracer)
