@@ -1,5 +1,4 @@
 import { ClientRequest, IncomingMessage, OutgoingMessage, ServerResponse } from "http";
-import { LookupFunction } from 'net';
 import * as opentracing from "opentracing";
 import * as otel from "@opentelemetry/api";
 
@@ -47,18 +46,6 @@ interface Tracer extends opentracing.Tracer {
    *         be found in `carrier`
    */
   extract (format: string, carrier: any): tracer.SpanContext | null;
-
-  /**
-   * Initializes the tracer. This should be called before importing other libraries.
-   */
-  init (options?: tracer.TracerOptions): this;
-
-  /**
-   * Sets the URL for the trace agent. This should only be called _after_
-   * init() is called, only in cases where the URL needs to be set after
-   * initialization.
-   */
-  setUrl (url: string): this;
 
   /**
    * Enable and optionally configure a plugin.
@@ -174,6 +161,7 @@ interface Plugins {
   "kafkajs": tracer.plugins.kafkajs
   "knex": tracer.plugins.knex;
   "koa": tracer.plugins.koa;
+  "langchain": tracer.plugins.langchain;
   "mariadb": tracer.plugins.mariadb;
   "memcached": tracer.plugins.memcached;
   "microgateway-core": tracer.plugins.microgateway_core;
@@ -325,437 +313,7 @@ declare namespace tracer {
   }
 
   /**
-   * Selection and priority order of context propagation injection and extraction mechanisms.
-   */
-  export interface PropagationStyle {
-    /**
-     * Selection of context propagation injection mechanisms.
-     */
-    inject: string[],
-
-    /**
-     * Selection and priority order of context propagation extraction mechanisms.
-     */
-    extract: string[]
-  }
-
-  /**
-   * List of options available to the tracer.
-   */
-  export interface TracerOptions {
-    /**
-     * Whether to enable trace ID injection in log records to be able to correlate
-     * traces with logs.
-     * @default false
-     */
-    logInjection?: boolean,
-
-    /**
-     * Whether to enable startup logs.
-     * @default true
-     */
-    startupLogs?: boolean,
-
-    /**
-     * The service name to be used for this program. If not set, the service name
-     * will attempted to be inferred from package.json
-     */
-    service?: string;
-
-    /**
-     * Provide service name mappings for each plugin.
-     */
-    serviceMapping?: { [key: string]: string };
-
-    /**
-     * The url of the trace agent that the tracer will submit to.
-     * Takes priority over hostname and port, if set.
-     */
-    url?: string;
-
-    /**
-     * The address of the trace agent that the tracer will submit to.
-     * @default 'localhost'
-     */
-    hostname?: string;
-
-    /**
-     * The port of the trace agent that the tracer will submit to.
-     * @default 8126
-     */
-    port?: number | string;
-
-    /**
-     * Whether to enable profiling.
-     */
-    profiling?: boolean
-
-    /**
-     * Options specific for the Dogstatsd agent.
-     */
-    dogstatsd?: {
-      /**
-       * The hostname of the Dogstatsd agent that the metrics will submitted to.
-       */
-      hostname?: string
-
-      /**
-       * The port of the Dogstatsd agent that the metrics will submitted to.
-       * @default 8125
-       */
-      port?: number
-    };
-
-    /**
-     * Set an application’s environment e.g. prod, pre-prod, stage.
-     */
-    env?: string;
-
-    /**
-     * The version number of the application. If not set, the version
-     * will attempted to be inferred from package.json.
-     */
-    version?: string;
-
-    /**
-     * Controls the ingestion sample rate (between 0 and 1) between the agent and the backend.
-     */
-    sampleRate?: number;
-
-    /**
-     * Global rate limit that is applied on the global sample rate and all rules,
-     * and controls the ingestion rate limit between the agent and the backend.
-     * Defaults to deferring the decision to the agent.
-     */
-    rateLimit?: number,
-
-    /**
-     * Sampling rules to apply to priority samplin. Each rule is a JSON,
-     * consisting of `service` and `name`, which are regexes to match against
-     * a trace's `service` and `name`, and a corresponding `sampleRate`. If not
-     * specified, will defer to global sampling rate for all spans.
-     * @default []
-     */
-    samplingRules?: SamplingRule[]
-
-    /**
-     * Span sampling rules that take effect when the enclosing trace is dropped, to ingest single spans
-     * @default []
-     */
-    spanSamplingRules?: SpanSamplingRule[]
-
-    /**
-     * Interval in milliseconds at which the tracer will submit traces to the agent.
-     * @default 2000
-     */
-    flushInterval?: number;
-
-    /**
-     *  Number of spans before partially exporting a trace. This prevents keeping all the spans in memory for very large traces.
-     * @default 1000
-     */
-    flushMinSpans?: number;
-
-    /**
-     * Whether to enable runtime metrics.
-     * @default false
-     */
-    runtimeMetrics?: boolean
-
-    /**
-     * Custom function for DNS lookups when sending requests to the agent.
-     * @default dns.lookup()
-     */
-    lookup?: LookupFunction
-
-    /**
-     * Protocol version to use for requests to the agent. The version configured must be supported by the agent version installed or all traces will be dropped.
-     * @default 0.4
-     */
-    protocolVersion?: string
-
-    /**
-     * Deprecated in favor of the global versions of the variables provided under this option
-     *
-     * @deprecated
-     * @hidden
-     */
-    ingestion?: {
-      /**
-       * Controls the ingestion sample rate (between 0 and 1) between the agent and the backend.
-       */
-      sampleRate?: number
-
-      /**
-       * Controls the ingestion rate limit between the agent and the backend. Defaults to deferring the decision to the agent.
-       */
-      rateLimit?: number
-    };
-
-    /**
-     * Experimental features can be enabled individually using key / value pairs.
-     * @default {}
-     */
-    experimental?: {
-      b3?: boolean
-      traceparent?: boolean
-
-      /**
-       * Whether to add an auto-generated `runtime-id` tag to metrics.
-       * @default false
-       */
-      runtimeId?: boolean
-
-      /**
-       * Whether to write traces to log output or agentless, rather than send to an agent
-       * @default false
-       */
-      exporter?: 'log' | 'agent' | 'datadog'
-
-      /**
-       * Whether to enable the experimental `getRumData` method.
-       * @default false
-       */
-      enableGetRumData?: boolean
-
-      /**
-       * Configuration of the IAST. Can be a boolean as an alias to `iast.enabled`.
-       */
-      iast?: boolean | IastOptions
-
-      appsec?: {
-        /**
-         * Configuration of Standalone ASM mode
-         */
-        standalone?: {
-          /**
-           * Whether to enable Standalone ASM.
-           * @default false
-           */
-          enabled?: boolean
-        }
-      }
-    };
-
-    /**
-     * Whether to load all built-in plugins.
-     * @default true
-     */
-    plugins?: boolean;
-
-    /**
-     * Custom logger to be used by the tracer (if debug = true),
-     * should support error(), warn(), info(), and debug() methods
-     * see https://datadog.github.io/dd-trace-js/#custom-logging
-     */
-    logger?: {
-      error: (err: Error | string) => void;
-      warn: (message: string) => void;
-      info: (message: string) => void;
-      debug: (message: string) => void;
-    };
-
-    /**
-     * Global tags that should be assigned to every span.
-     */
-    tags?: { [key: string]: any };
-
-    /**
-     * Specifies which scope implementation to use. The default is to use the best
-     * implementation for the runtime. Only change this if you know what you are
-     * doing.
-     */
-    scope?: 'async_hooks' | 'async_local_storage' | 'async_resource' | 'sync' | 'noop'
-
-    /**
-     * Whether to report the hostname of the service host. This is used when the agent is deployed on a different host and cannot determine the hostname automatically.
-     * @default false
-     */
-    reportHostname?: boolean
-
-    /**
-     * A string representing the minimum tracer log level to use when debug logging is enabled
-     * @default 'debug'
-     */
-    logLevel?: 'error' | 'debug'
-
-    /**
-     * If false, require a parent in order to trace.
-     * @default true
-     * @deprecated since version 4.0
-     */
-    orphanable?: boolean
-
-    /**
-     * Enables DBM to APM link using tag injection.
-     * @default 'disabled'
-     */
-    dbmPropagationMode?: 'disabled' | 'service' | 'full'
-
-    /**
-     * Configuration of the AppSec protection. Can be a boolean as an alias to `appsec.enabled`.
-     */
-    appsec?: boolean | {
-      /**
-       * Whether to enable AppSec.
-       * @default false
-       */
-      enabled?: boolean,
-
-      /**
-       * Specifies a path to a custom rules file.
-       */
-      rules?: string,
-
-      /**
-       * Controls the maximum amount of traces sampled by AppSec attacks, per second.
-       * @default 100
-       */
-      rateLimit?: number,
-
-      /**
-       * Controls the maximum amount of time in microseconds the WAF is allowed to run synchronously for.
-       * @default 5000
-       */
-      wafTimeout?: number,
-
-      /**
-       * Specifies a regex that will redact sensitive data by its key in attack reports.
-       */
-      obfuscatorKeyRegex?: string,
-
-      /**
-       * Specifies a regex that will redact sensitive data by its value in attack reports.
-       */
-      obfuscatorValueRegex?: string,
-
-      /**
-       * Specifies a path to a custom blocking template html file.
-       */
-      blockedTemplateHtml?: string,
-
-      /**
-       * Specifies a path to a custom blocking template json file.
-       */
-      blockedTemplateJson?: string,
-
-      /**
-       * Specifies a path to a custom blocking template json file for graphql requests
-       */
-      blockedTemplateGraphql?: string,
-
-      /**
-       * Controls the automated user event tracking configuration
-       */
-      eventTracking?: {
-        /**
-         * Controls the automated user event tracking mode. Possible values are disabled, safe and extended.
-         * On safe mode, any detected Personally Identifiable Information (PII) about the user will be redacted from the event.
-         * On extended mode, no redaction will take place.
-         * @default 'safe'
-         */
-        mode?: 'safe' | 'extended' | 'disabled'
-      },
-      /**
-       * Configuration for Api Security sampling
-       */
-      apiSecurity?: {
-        /** Whether to enable Api Security.
-         * @default false
-         */
-        enabled?: boolean,
-
-        /** Controls the request sampling rate (between 0 and 1) in which Api Security is triggered.
-         * The value will be coerced back if it's outside of the 0-1 range.
-         * @default 0.1
-         */
-        requestSampling?: number
-      },
-      /**
-       * Configuration for RASP
-       */
-      rasp?: {
-        /** Whether to enable RASP.
-         * @default false
-         */
-        enabled?: boolean
-      },
-      /**
-       * Configuration for stack trace reporting
-       */
-      stackTrace?: {
-        /** Whether to enable stack trace reporting.
-         * @default true
-         */
-        enabled?: boolean,
-
-        /** Specifies the maximum number of stack traces to be reported.
-         * @default 2
-         */
-        maxStackTraces?: number,
-
-        /** Specifies the maximum depth of a stack trace to be reported.
-         * @default 32
-         */
-        maxDepth?: number,
-      }
-    };
-
-    /**
-     * Configuration of the IAST. Can be a boolean as an alias to `iast.enabled`.
-     */
-    iast?: boolean | IastOptions
-
-    /**
-     * Configuration of ASM Remote Configuration
-     */
-    remoteConfig?: {
-      /**
-       * Specifies the remote configuration polling interval in seconds
-       * @default 5
-       */
-      pollInterval?: number,
-    }
-
-    /**
-     * Whether to enable client IP collection from relevant IP headers
-     * @default false
-     */
-    clientIpEnabled?: boolean
-
-    /**
-     * Custom header name to source the http.client_ip tag from.
-     */
-    clientIpHeader?: string,
-
-    /**
-     * The selection and priority order of context propagation injection and extraction mechanisms.
-     */
-    propagationStyle?: string[] | PropagationStyle
-
-    /**
-     * Cloud payload report as tags
-     */
-    cloudPayloadTagging?: {
-      /**
-       *  Additional JSONPath queries to replace with `redacted` in request payloads
-       *  Undefined or invalid JSONPath queries disable the feature for requests.
-       */
-      request?: string,
-      /**
-       *  Additional JSONPath queries to replace with `redacted` in response payloads
-       *  Undefined or invalid JSONPath queries disable the feature for responses.
-       */
-      response?: string,
-      /**
-       *  Maximum depth of payload traversal for tags
-       */
-      maxDepth?: number
-    }
-  }
-
-  /**
-   * User object that can be passed to `tracer.setUser()`.
+   * User object that can be passed to `tracer.appsec.setUser()`.
    */
   export interface User {
     /**
@@ -1033,6 +591,14 @@ declare namespace tracer {
        * @default code => code < 500
        */
       validateStatus?: (code: number) => boolean;
+
+      /**
+       * Enable injection of tracing headers into requests signed with AWS IAM headers.
+       * Disable this if you get AWS signature errors (HTTP 403).
+       *
+       * @default false
+       */
+      enablePropagationWithAmazonHeaders?: boolean;
     }
 
     /** @hidden */
@@ -1579,6 +1145,12 @@ declare namespace tracer {
      * [kafkajs](https://kafka.js.org/) module.
      */
     interface kafkajs extends Instrumentation {}
+
+    /**
+     * This plugin automatically instruments the
+     * [langchain](https://js.langchain.com/) module
+     */
+    interface langchain extends Instrumentation {}
 
     /**
      * This plugin automatically instruments the
