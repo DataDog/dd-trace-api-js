@@ -14,7 +14,7 @@
     "dc-polyfill": "^0.1.6"
   },
   "devDependencies": {
-    "dd-trace": "git+ssh://github.com/DataDog/dd-trace-js.git#bengl/instrument-dd-trace-api",
+    "dd-trace": "^5.35.0",
     "neostandard": "^0.11.9",
     "test": "^3.3.0"
   }
