@@ -10,7 +10,7 @@ jobs:
       matrix:
         node-version: ['18.0.0', '18', '20.0.0', '20', '22.0.0', '22', '23.0.0', '23']
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2.7.0
       with:
         persist-credentials: false
     # Remove this next step when there's a compatible release of dd-trace on npm
@@ -18,7 +18,7 @@ jobs:
       run: >
         git config --global url."https://${{ secrets.GH_TOKEN }}@github.com/".insteadOf ssh://git@github.com/
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
       with:
         node-version: ${{ matrix.node-version }}
     - name: Install dependencies
@@ -28,9 +28,9 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2.7.0
     - name: Use Node.js 22
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
       with:
         node-version: 22
     # Install just neostandard to avoid installing all dependencies
