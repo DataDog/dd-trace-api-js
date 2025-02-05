@@ -11,7 +11,8 @@
   "license": "MIT",
   "description": "",
   "dependencies": {
-    "dc-polyfill": "^0.1.6"
+    "dc-polyfill": "^0.1.6",
+    "typescript": "^5.7.3"
   },
   "devDependencies": {
     "dd-trace": "^5.35.0",
