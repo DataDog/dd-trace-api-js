@@ -31,8 +31,9 @@ test('inject with startSpan', () => {
   span.finish()
 })
 
-test('inject with trace', () => {
-  tracer.trace('foo', (span) => {
+test('inject with trace', async () => {
+  const obj = {}
+  const val = await tracer.trace('foo', async (span) => {
     assert(span)
     const carrier = {}
     tracer.inject(span, 'text_map', carrier)
@@ -44,11 +45,22 @@ test('inject with trace', () => {
     assert.strictEqual(typeof carrier['x-datadog-tags'], 'string')
     assert.strictEqual(typeof carrier.traceparent, 'string')
     assert.strictEqual(typeof carrier.tracestate, 'string')
+    return obj
   })
+  assert.strictEqual(val, obj)
+})
+
+test('trace returns same value (non-promise)', () => {
+  const obj = {}
+  const val = tracer.trace('foo', (span) => {
+    return obj
+  })
+  assert.strictEqual(val, obj)
 })
 
 test('inject with wrap', async () => {
-  await tracer.wrap('foo', async () => {
+  const obj = {}
+  const val = await tracer.wrap('foo', {}, async () => {
     const span = tracer.scope().active()
     assert(span)
     const carrier = {}
@@ -61,7 +73,17 @@ test('inject with wrap', async () => {
     assert.strictEqual(typeof carrier['x-datadog-tags'], 'string')
     assert.strictEqual(typeof carrier.traceparent, 'string')
     assert.strictEqual(typeof carrier.tracestate, 'string')
+    return obj
   })()
+  assert.strictEqual(val, obj)
+})
+
+test('wrap returns same value (non-promise)', () => {
+  const obj = {}
+  const val = tracer.wrap('foo', {}, () => {
+    return obj
+  })()
+  assert.strictEqual(val, obj)
 })
 
 test('get active span and interact with it', () => {

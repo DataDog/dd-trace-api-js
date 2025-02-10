@@ -91,9 +91,33 @@ const tracer = {
     fn = typeof options === 'function' ? options : fn
     return fn.apply(this, arguments)
   }, false, [getSpan]),
-  wrap: shimmable('wrap', (name, options, fn) => {
-    return typeof options === 'function' ? options : fn
-  }),
+  wrap (name, options, fn) {
+    const tracer = this
+
+    return function () {
+      let optionsObj = options
+      if (typeof optionsObj === 'function' && typeof fn === 'function') {
+        optionsObj = optionsObj.apply(this, arguments)
+      }
+
+      const lastArgId = arguments.length - 1
+      const cb = arguments[lastArgId]
+
+      if (typeof cb === 'function') {
+        const scopeBoundCb = tracer.scope().bind(cb)
+        return tracer.trace(name, optionsObj, (span, done) => {
+          arguments[lastArgId] = function (err) {
+            done(err)
+            return scopeBoundCb.apply(this, arguments)
+          }
+
+          return fn.apply(this, arguments)
+        })
+      } else {
+        return tracer.trace(name, optionsObj, () => fn.apply(this, arguments))
+      }
+    }
+  },
   getRumData: shimmable('getRumData', () => ''),
   appsec: {
     trackUserLoginSuccessEvent: noop('appsec:trackUserLoginSuccessEvent'),
