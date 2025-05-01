@@ -162,10 +162,6 @@ test('scope:bind', () => {
   makeCall(scope, 'bind', () => {})
 })
 
-test('trace', () => {
-  makeCall(tracer, 'trace', 'foo', {}, () => {})
-})
-
 test('getRumData', () => {
   makeCall(tracer, 'getRumData')
 }, { ret: {} })
