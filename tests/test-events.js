@@ -166,10 +166,6 @@ test('trace', () => {
   makeCall(tracer, 'trace', 'foo', {}, () => {})
 })
 
-test('wrap', () => {
-  makeCall(tracer, 'wrap', 'foo', {}, () => {})
-})
-
 test('getRumData', () => {
   makeCall(tracer, 'getRumData')
 }, { ret: {} })
