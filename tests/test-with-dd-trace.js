@@ -4,6 +4,11 @@ require('dd-trace/init')
 const testBase = require('node:test')
 const assert = require('node:assert')
 
+// Because the dd-trace-api plugin in dd-trace is not loaded unless the
+// dd-trace-api module is loaded from node_modules, we need to mimic that here.
+const dc = require('diagnostics_channel')
+dc.channel('dd-trace:instrumentation:load').publish({ name: 'dd-trace-api' })
+
 const tracer = require('../index.js')
 
 const test = (name, fn) => {
