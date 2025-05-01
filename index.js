@@ -87,10 +87,53 @@ const tracer = {
   extract: shimmable('extract', null),
   use: noopThis('use'),
   scope: shimmable('scope', getScope, true),
-  trace: shimmable('trace', function (name, options, fn) {
-    fn = typeof options === 'function' ? options : fn
-    return fn.apply(this, arguments)
-  }, false, [getSpan]),
+  trace (name, options, fn) {
+    if (typeof options === 'function') {
+      fn = options
+      options = {}
+    }
+
+    options = Object.assign({
+      childOf: this.scope().active()
+    }, options)
+
+    const span = this.startSpan(name, options)
+
+    addTags(span, options)
+
+    try {
+      if (fn.length > 1) {
+        return this.scope().activate(span, () => fn(span, err => {
+          addError(span, err)
+          span.finish()
+        }))
+      }
+
+      const result = this.scope().activate(span, () => fn(span))
+
+      if (result && typeof result.then === 'function') {
+        return result.then(
+          value => {
+            span.finish()
+            return value
+          },
+          err => {
+            addError(span, err)
+            span.finish()
+            throw err
+          }
+        )
+      } else {
+        span.finish()
+      }
+
+      return result
+    } catch (e) {
+      addError(span, e)
+      span.finish()
+      throw e
+    }
+  },
   wrap (name, options, fn) {
     const tracer = this
 
@@ -146,3 +189,29 @@ const tracerInitChannel = dc.channel('datadog-api:v1:tracerinit')
 tracerInitChannel.publish({ proxy: () => tracer })
 
 module.exports = tracer
+
+function isError (err) {
+  return Boolean(err?.message || err instanceof Error)
+}
+
+function addError (span, error) {
+  if (isError(error)) {
+    span.addTags({
+      'error.type': error.name,
+      'error.message': error.message,
+      'error.stack': error.stack
+    })
+  }
+}
+
+function addTags (span, options) {
+  const tags = {}
+
+  if (options.type) tags['span.type'] = options.type
+  if (options.service) tags['service.name'] = options.service
+  if (options.resource) tags['resource.name'] = options.resource
+
+  tags['_dd.measured'] = options.measured
+
+  span.addTags(tags)
+}

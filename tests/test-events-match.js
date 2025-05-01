@@ -13,5 +13,11 @@ test('published events are the same as subscribed events', () => {
     // dd-trace, so we need to account for it here.
     subscribedEvents.splice(subscribedEvents.indexOf('datadog-api:v1:wrap'), 1)
   }
+  if (subscribedEvents.includes('datadog-api:v1:trace')) {
+    // This event is unnecessary, since it's been replaced with just doing
+    // `trace` in this library. That said, it's in a published version of
+    // dd-trace, so we need to account for it here.
+    subscribedEvents.splice(subscribedEvents.indexOf('datadog-api:v1:trace'), 1)
+  }
   assert.deepStrictEqual(publishedEvents.sort(), subscribedEvents.sort())
 })
