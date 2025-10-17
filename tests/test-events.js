@@ -113,6 +113,9 @@ test('span:addTags', () => {
 test('span:addLink', () => {
   makeCall(span, 'addLink', 'foo', 'bar')
 })
+test('span:sample', () => {
+  makeCall(span, 'sample')
+})
 test('span:context', () => {
   context = makeCall(span, 'context')
 })

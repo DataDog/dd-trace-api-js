@@ -168,6 +168,12 @@ declare namespace tracer {
      * @returns {void}
      */
     addLink (context: SpanContext, attributes?: Object): void;
+
+    /**
+     * Triggers the span sampling decision
+     * @returns {void}
+     */
+    sample(): void;
   }
 
   /**

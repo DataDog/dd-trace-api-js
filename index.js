@@ -61,7 +61,8 @@ const dummySpan = {
   addTags: noop('span:addTags'),
   finish: noop('span:finish'),
   context: shimmable('span:context', getSpanContext, true),
-  addLink: noop('span:addLink')
+  addLink: noop('span:addLink'),
+  sample: noop('span:sample')
 }
 nameFuncs(dummySpan)
 function getSpan () {
