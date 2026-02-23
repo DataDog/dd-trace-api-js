@@ -93,16 +93,13 @@ function test (name, fn, options = {}) {
   }
 }
 
-let tracer
-
-test('tracerinit', () => {
-  tracer = require('../index.js')
-}, { skipThrows: true })
+const tracer = require('../index.js')
 
 let span
 let context
 test('startSpan', () => {
   span = makeCall(tracer, 'startSpan', 'foo')
+  testedEvents.push('datadog-api:v1:tracerinit') // This is implicitly tested in the first call
 })
 test('span:setTag', () => {
   makeCall(span, 'setTag', 'foo', 'bar')
