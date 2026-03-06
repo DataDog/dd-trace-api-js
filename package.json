@@ -1,13 +1,18 @@
 {
   "name": "dd-trace-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
     "license-check": "node check_licenses.js",
     "test": "node tests/run.js"
   },
-  "keywords": ["datadog", "tracing", "api", "dd-trace"],
+  "keywords": [
+    "datadog",
+    "tracing",
+    "api",
+    "dd-trace"
+  ],
   "author": "Datadog Inc. <info@datadoghq.com>",
   "license": "Apache-2.0",
   "description": "An API for dd-trace, the Datadog APM library for Node.js.",
