@@ -95,11 +95,23 @@ function test (name, fn, options = {}) {
 
 const tracer = require('../index.js')
 
+testBase('event: "datadog-api:v1:tracerinit" not called before first call', () => {
+  assert.ok(channels['datadog-api:v1:tracerinit'], 'channel datadog-api:v1:tracerinit does not exist')
+  assert.strictEqual(channels['datadog-api:v1:tracerinit'].messages.length, 0)
+})
+
 let span
 let context
 test('startSpan', () => {
   span = makeCall(tracer, 'startSpan', 'foo')
-  testedEvents.push('datadog-api:v1:tracerinit') // This is implicitly tested in the first call
+})
+
+testBase('event: "datadog-api:v1:tracerinit" called after first call', () => {
+  testedEvents.push('datadog-api:v1:tracerinit')
+  const ch = channels['datadog-api:v1:tracerinit']
+  assert.ok(ch, 'channel datadog-api:v1:tracerinit does not exist')
+  assert.strictEqual(ch.messages.length, 1)
+  assert.strictEqual(typeof ch.messages[0].proxy, 'function')
 })
 test('span:setTag', () => {
   makeCall(span, 'setTag', 'foo', 'bar')
