@@ -7,6 +7,7 @@ const major = version.split('.')[0]
 function shimmable (name, defaultFun, mapReturnValue, revProxy = []) {
   const channel = dc.channel(`datadog-api:v${major}:${name}`)
   function fn () {
+    ensureInit()
     if (!channel.hasSubscribers) {
       return defaultFun.apply(this, arguments)
     }
@@ -185,8 +186,14 @@ nameFuncs(tracer)
 
 tracer.tracer = tracer.default = tracer
 
+let hasInitialized = false
 const tracerInitChannel = dc.channel('datadog-api:v1:tracerinit')
-tracerInitChannel.publish({ proxy: () => tracer })
+function ensureInit () {
+  if (!hasInitialized) {
+    tracerInitChannel.publish({ proxy: () => tracer })
+    hasInitialized = true
+  }
+}
 
 module.exports = tracer
 
