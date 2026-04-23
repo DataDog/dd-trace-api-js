@@ -17,10 +17,10 @@
   "license": "Apache-2.0",
   "description": "An API for dd-trace, the Datadog APM library for Node.js.",
   "dependencies": {
-    "dc-polyfill": "^0.1.6"
+    "dc-polyfill": "^0.1.10"
   },
   "devDependencies": {
-    "dd-trace": "^5.50.0",
+    "dd-trace": "^5.97.0",
     "neostandard": "^0.11.9",
     "test": "^3.3.0"
   }
