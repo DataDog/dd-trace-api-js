@@ -20,7 +20,7 @@
     "dc-polyfill": "^0.1.6"
   },
   "devDependencies": {
-    "dd-trace": "^5.50.0",
+    "dd-trace": "^5.115.0",
     "neostandard": "^0.11.9",
     "test": "^3.3.0"
   }
